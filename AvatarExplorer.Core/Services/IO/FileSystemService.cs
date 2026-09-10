@@ -395,7 +395,7 @@ public static class FileSystemService
     private static async Task<(int ProcessedEntries, bool ContainsScripts)> ExtractUnitypackageToFolderAsync(string tarGzFilePath, string saveFilePath, string category, bool changeUnitypackagePath, int totalEntries, int currentProcessedEntries = 0, Func<(string Message, int Percent), Task>? reportProgress = null)
     {
         int processedEntries = currentProcessedEntries;
-        bool containsScripts = false;
+        var containsScripts = false;
 
         int lastProgress = -1;
 
@@ -405,19 +405,23 @@ public static class FileSystemService
             {
                 if (changeUnitypackagePath && Path.GetFileName(entry.Name) == "pathname" && entry.DataStream != null)
                 {
-                    using StreamReader reader = new(entry.DataStream);
-                    string assetPath = await reader.ReadToEndAsync();
+                    using var reader = new StreamReader(entry.DataStream);
+                    var assetPath = await reader.ReadToEndAsync();
 
-                    if (Path.GetExtension(assetPath).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-                        containsScripts = true;
+                    var isPathInAssets = assetPath.StartsWith("Assets");
+                    var isScriptAsset = Path.GetExtension(assetPath).Equals(".cs", StringComparison.OrdinalIgnoreCase);
 
                     // 親フォルダがAssetsのものだけ変更するようにする (例えば、親フォルダがPackagesのものは変更しない)
-                    if (assetPath.StartsWith("Assets")) assetPath = assetPath.Insert(7, $"{category}/");
+                    if (isPathInAssets)
+                    {
+                        assetPath = assetPath.Insert(7, $"{category}/");
+                        containsScripts |= isScriptAsset;
+                    }
 
                     entry.DataStream = new MemoryStream(Encoding.UTF8.GetBytes(assetPath));
                 }
 
-                string entryPath = Path.Combine(saveFilePath, entry.Name);
+                var entryPath = Path.Combine(saveFilePath, entry.Name);
                 if (entryPath.EndsWith('/'))
                 {
                     Directory.CreateDirectory(entryPath);
@@ -426,7 +430,7 @@ public static class FileSystemService
                 {
                     entry.DataStream ??= new MemoryStream();
                     Directory.CreateDirectory(Path.GetDirectoryName(entryPath)!);
-                    await using Stream entryStream = File.Create(entryPath);
+                    await using var entryStream = File.Create(entryPath);
                     await entry.DataStream.CopyToAsync(entryStream);
                 }
             }
@@ -485,7 +489,7 @@ public static class FileSystemService
             await archive.AddEntryAsync(relativePath, filePath);
         }
 
-        await using FileStream fileStream = new(outputTarFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 1024 * 1024, FileOptions.SequentialScan);
+        await using var fileStream = new FileStream(outputTarFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 1024 * 1024, FileOptions.SequentialScan);
         await archive.SaveToAsync(fileStream, new TarWriterOptions(CompressionType.None));
     }
     #endregion
