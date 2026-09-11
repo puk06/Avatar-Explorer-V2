@@ -26,8 +26,8 @@ internal static class ContextMenuCreator
         // HandlerにはItemViewModelのActualValue ?? Identifierを渡すので、ここでは必要ない。
         return type switch
         {
-            ViewModelType.Avatar => CreateFromItem(),
-            ViewModelType.Item => CreateFromItem(),
+            ViewModelType.Avatar => CreateFromItem(viewModel.ActualValue ?? string.Empty),
+            ViewModelType.Item => CreateFromItem(viewModel.Identifier),
             ViewModelType.Folder => CreateFromFolder(viewModel.ActualValue ?? string.Empty),
             ViewModelType.File => CreateFromItemFile(viewModel.ActualValue ?? string.Empty),
             ViewModelType.BulkImportPreset => CreateFromBulkImportPreset(),
@@ -37,11 +37,20 @@ internal static class ContextMenuCreator
         };
     }
 
-    private static ContextMenuAction[] CreateFromItem()
+    private static ContextMenuAction[] CreateFromItem(string identifier)
     {
+        if (string.IsNullOrEmpty(identifier)) return [];
+
+        var item = InstanceRepository.Items.Get(identifier);
+        if (item == null) return [];
+
+        var hasBoothId = item.BoothId != -1;
+        var isHidden = item.IsHidden;
+        var skipIndirectCommonAvatarCheck = item.SkipIndirectCommonAvatarCheck;
+
         List<ContextMenuAction> contextMenuActions =
         [
-            new(Loc.ContextMenu.Item.CheckForUpdate, ActionKey.CheckForUpdate, ContextMenuIconType.Update, addSeparator: true),
+            new(Loc.ContextMenu.Item.CheckForUpdate, ActionKey.CheckForUpdate, ContextMenuIconType.Update, isEnabled: hasBoothId, addSeparator: true),
             new(Loc.ContextMenu.Item.ShowOtherItemsByAuthor, ActionKey.ShowOtherItemsByAuthor, ContextMenuIconType.Open, addSeparator: true),
 
             new(Loc.ContextMenu.Item.Add.BulkImportList, ActionKey.AddToBulkImportList, ContextMenuIconType.Add),
@@ -54,8 +63,8 @@ internal static class ContextMenuCreator
                     new(Loc.ContextMenu.Item.Add.Url, ActionKey.AddItemUrl, ContextMenuIconType.AddUrl),
                 }
             },
-            new(Loc.ContextMenu.Item.Booth.Open, ActionKey.OpenBoothLink, ContextMenuIconType.Open),
-            new(Loc.ContextMenu.Item.Booth.Copy, ActionKey.CopyBoothLink, ContextMenuIconType.Copy, addSeparator: true),
+            new(Loc.ContextMenu.Item.Booth.Open, ActionKey.OpenBoothLink, ContextMenuIconType.Open, isEnabled: hasBoothId),
+            new(Loc.ContextMenu.Item.Booth.Copy, ActionKey.CopyBoothLink, ContextMenuIconType.Copy, isEnabled: hasBoothId, addSeparator: true),
 
             new(Loc.ContextMenu.Item.CopyItemInfo, ActionKey.CopyItemInfo, ContextMenuIconType.Copy, addSeparator: true),
 
@@ -80,7 +89,7 @@ internal static class ContextMenuCreator
                     new(Loc.ContextMenu.Item.Edit.Title, ActionKey.EditItemTitle, ContextMenuIconType.Edit),
                     new(Loc.ContextMenu.Item.Edit.DefaultPath, ActionKey.EditItemDefaultPath, ContextMenuIconType.Edit, addSeparator: true),
                     new(Loc.ContextMenu.Item.Thumbnail.Change, ActionKey.ChangeThumbnail, ContextMenuIconType.Edit),
-                    new(Loc.ContextMenu.Item.Thumbnail.Fetch, ActionKey.FetchThumbnail, ContextMenuIconType.Fetch)
+                    new(Loc.ContextMenu.Item.Thumbnail.Fetch, ActionKey.FetchThumbnail, ContextMenuIconType.Fetch, isEnabled: hasBoothId)
                 }
             },
 
@@ -88,8 +97,8 @@ internal static class ContextMenuCreator
             {
                 SubMenuItems =
                 {
-                    new(Loc.ContextMenu.Item.HideItem, ActionKey.HideItem, ContextMenuIconType.Hidden),
-                    new(Loc.ContextMenu.Item.ShowItem, ActionKey.ShowItem, ContextMenuIconType.Visible)
+                    new(Loc.ContextMenu.Item.HideItem, ActionKey.HideItem, ContextMenuIconType.Hidden, isEnabled: !isHidden),
+                    new(Loc.ContextMenu.Item.ShowItem, ActionKey.ShowItem, ContextMenuIconType.Visible, isEnabled: isHidden)
                 }
             },
 
@@ -97,8 +106,8 @@ internal static class ContextMenuCreator
             {
                 SubMenuItems =
                 {
-                    new(Loc.ContextMenu.Item.SkipIndirectCommonAvatarCheck, ActionKey.SkipIndirectCommonAvatarCheck, ContextMenuIconType.ExcludeCommonAvatarCheck),
-                    new(Loc.ContextMenu.Item.EnableIndirectCommonAvatarCheck, ActionKey.EnableIndirectCommonAvatarCheck, ContextMenuIconType.IncludeCommonAvatarCheck)
+                    new(Loc.ContextMenu.Item.SkipIndirectCommonAvatarCheck, ActionKey.SkipIndirectCommonAvatarCheck, ContextMenuIconType.ExcludeCommonAvatarCheck, isEnabled: !skipIndirectCommonAvatarCheck),
+                    new(Loc.ContextMenu.Item.EnableIndirectCommonAvatarCheck, ActionKey.EnableIndirectCommonAvatarCheck, ContextMenuIconType.IncludeCommonAvatarCheck, isEnabled: skipIndirectCommonAvatarCheck)
                 }
             },
 
@@ -111,17 +120,20 @@ internal static class ContextMenuCreator
     private static ContextMenuAction[] CreateFromFolder(string path)
     {
         if (string.IsNullOrEmpty(path)) return [];
-        List<ContextMenuAction> contextMenuActions = [];
 
         var isWindows = ProcessUtils.IsWindows();
 
-        contextMenuActions.Add(new(Loc.ContextMenu.ItemFolder.OpenFolder, ActionKey.OpenFolder, ContextMenuIconType.Open, addSeparator: !isWindows));
+        List<ContextMenuAction> contextMenuActions =
+        [
+            new(Loc.ContextMenu.ItemFolder.OpenFolder, ActionKey.OpenFolder, ContextMenuIconType.Open, addSeparator: !isWindows),
+        ];
 
         if (isWindows)
         {
             contextMenuActions.Add(new(Loc.ContextMenu.ItemFolder.ShowInExplorer, ActionKey.ShowInExplorer, ContextMenuIconType.Open, addSeparator: true));
         }
 
+        contextMenuActions.Add(new(Loc.ContextMenu.ItemFolder.CopyFolderPath, ActionKey.CopyPath, ContextMenuIconType.Copy, addSeparator: true));
         contextMenuActions.Add(new(Loc.ContextMenu.ItemFolder.RemoveFolder, ActionKey.RemoveFolder, ContextMenuIconType.Delete));
 
         return contextMenuActions.ToArray();
@@ -129,16 +141,22 @@ internal static class ContextMenuCreator
 
     private static ContextMenuAction[] CreateFromItemFile(string path)
     {
+        if (string.IsNullOrEmpty(path)) return [];
+
+        var isWindows = ProcessUtils.IsWindows();
+
         List<ContextMenuAction> contextMenuActions =
         [
-            new(Loc.ContextMenu.ItemFile.OpenFile, ActionKey.OpenFile, ContextMenuIconType.Open),
-            new(Loc.ContextMenu.ItemFile.BulkImportList, ActionKey.AddFileToBulkImportList, ContextMenuIconType.Add)
+            new(Loc.ContextMenu.ItemFile.OpenFile, ActionKey.OpenFile, ContextMenuIconType.Open, addSeparator: !isWindows),
         ];
 
-        if (ProcessUtils.IsWindows())
+        if (isWindows)
         {
-            contextMenuActions.Add(new(Loc.ContextMenu.ItemFile.ShowInExplorer, ActionKey.ShowInExplorer, ContextMenuIconType.Open));
+            contextMenuActions.Add(new(Loc.ContextMenu.ItemFile.ShowInExplorer, ActionKey.ShowInExplorer, ContextMenuIconType.Open, addSeparator: true));
         }
+
+        contextMenuActions.Add(new(Loc.ContextMenu.ItemFile.CopyFilePath, ActionKey.CopyPath, ContextMenuIconType.Copy, addSeparator: true));
+        contextMenuActions.Add(new(Loc.ContextMenu.ItemFile.BulkImportList, ActionKey.AddFileToBulkImportList, ContextMenuIconType.Add));
 
         if (PathUtils.IsUnitypackageFile(path))
         {

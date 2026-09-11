@@ -25,6 +25,7 @@ public enum ActionKey
     EditItemTag,
     RemoveItem,
 
+    CopyPath, // Fileにも使われる
     OpenFolder,
     ShowInExplorer, // Fileにも使われる
     RemoveFolder,
