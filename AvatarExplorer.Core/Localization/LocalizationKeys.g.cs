@@ -278,12 +278,14 @@ public static class Loc
         }
         public static class ItemFolder
         {
+            public const string CopyFolderPath = "ContextMenu.ItemFolder.CopyFolderPath";
             public const string OpenFolder = "ContextMenu.ItemFolder.OpenFolder";
             public const string ShowInExplorer = "ContextMenu.ItemFolder.ShowInExplorer";
             public const string RemoveFolder = "ContextMenu.ItemFolder.RemoveFolder";
         }
         public static class ItemFile
         {
+            public const string CopyFilePath = "ContextMenu.ItemFile.CopyFilePath";
             public const string OpenFile = "ContextMenu.ItemFile.OpenFile";
             public const string BulkImportList = "ContextMenu.ItemFile.BulkImportList";
             public const string ShowInExplorer = "ContextMenu.ItemFile.ShowInExplorer";

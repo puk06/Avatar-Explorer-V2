@@ -71,6 +71,7 @@ public static class ContextMenuHandlerService
         Register(ActionKey.ShowItem, ShowItem);
         Register(ActionKey.EnableIndirectCommonAvatarCheck, EnableIndirectCommonAvatarCheck);
         Register(ActionKey.SkipIndirectCommonAvatarCheck, SkipIndirectCommonAvatarCheck);
+        Register(ActionKey.CopyPath, i => _ = CopyText(i));
     }
 
     private static Item? GetByIdentifier(string identifier)
@@ -86,6 +87,15 @@ public static class ContextMenuHandlerService
         }
 
         return item;
+    }
+    private static async Task CopyText(string text)
+    {
+        var result = await ClipboardService.SetText(text);
+        NotificationManager.Show(
+            !result.IsError ? Localizer.Instance[Loc.Success.Default] : Localizer.Instance[Loc.Error.Default],
+            !result.IsError ? Localizer.Instance[Loc.Success.ClipboardSet] : Localizer.Instance[Loc.Error.ClipboardSetFailed],
+            !result.IsError ? NotificationType.Success : NotificationType.Error
+        );
     }
     private static async Task EditItemInternal(string identifier, ItemEditContext context, string? successMessage = null)
     {
@@ -112,7 +122,9 @@ public static class ContextMenuHandlerService
     private static async void RemoveFolder(string path)
     {
         var currentItem = InstanceRepository.NavigationService.GetCurrentItemId();
-        var item = GetByIdentifier(currentItem ?? string.Empty);
+        if (string.IsNullOrEmpty(currentItem)) return;
+
+        var item = GetByIdentifier(currentItem);
         if (item == null) return;
 
         var rootPath = item.GetItemPath();
@@ -202,12 +214,7 @@ public static class ContextMenuHandlerService
         var link = GetByIdentifier(identifier)?.GetBoothLink(Localizer.Instance[Loc.BoothLanguageCode]);
         if (string.IsNullOrEmpty(link)) return;
 
-        var result = await ClipboardService.SetText(link);
-        NotificationManager.Show(
-            !result.IsError ? Localizer.Instance[Loc.Success.Default] : Localizer.Instance[Loc.Error.Default],
-            !result.IsError ? Localizer.Instance[Loc.Success.ClipboardSet] : Localizer.Instance[Loc.Error.ClipboardSetFailed],
-            !result.IsError ? NotificationType.Success : NotificationType.Error
-        );
+        await CopyText(link);
     }
     private static async void OpenBoothLink(string identifier)
     {
@@ -259,12 +266,7 @@ public static class ContextMenuHandlerService
         if (item == null) return;
 
         string itemInfo = string.Format("{0} - {1}\n{2}", item.Title, item.Author, item.BoothId != -1 ? item.GetBoothLink(Localizer.Instance[Loc.BoothLanguageCode]) : "(No Booth Link)");
-        var result = await ClipboardService.SetText(itemInfo);
-        NotificationManager.Show(
-            !result.IsError ? Localizer.Instance[Loc.Success.Default] : Localizer.Instance[Loc.Error.Default],
-            !result.IsError ? Localizer.Instance[Loc.Success.ClipboardSet] : Localizer.Instance[Loc.Error.ClipboardSetFailed],
-            !result.IsError ? NotificationType.Success : NotificationType.Error
-        );
+        await CopyText(itemInfo);
     }
     private static void EditItem(string identifier) => InstanceRepository.MainWindow.ItemEditorVM.Open(identifier);
     private static async void EditItemTitle(string identifier)
