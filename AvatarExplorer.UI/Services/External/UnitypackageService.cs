@@ -14,7 +14,7 @@ namespace AvatarExplorer.UI.Services.External;
 
 internal static class UnitypackageService
 {
-    internal static async Task<ModifiedUnitypackagesResult> Import(IReadOnlyList<UnitypackageImportEntry> entries, Func<string, int, Task>? onProgress = null)
+    internal static async Task<ModifiedUnitypackagesResult> Import(IReadOnlyList<UnitypackageImportEntry> entries, bool pathChange, Func<string, int, Task>? onProgress = null)
     {
         Task progressAction((string Message, int Percent) p)
         {
@@ -28,7 +28,8 @@ internal static class UnitypackageService
         var result = await FileSystemService.ModifyUnitypackageFilePathsAsync(new UnitypackageModifyRequest
         {
             Entries = entries,
-            ReportProgress = progressAction
+            ReportProgress = progressAction,
+            ChangeUnitypackagePath = pathChange
         });
         return result;
     }
@@ -60,9 +61,11 @@ internal static class UnitypackageService
 
     public static async Task ImportWithProgress(
         IReadOnlyList<UnitypackageImportEntry> entries,
+        bool? pathChange = null,
         string errorKey = Loc.Error.ImportUnitypackageFailed)
     {
-        if (entries.Count == 1 && !InstanceRepository.RuntimeSettings.AutoChangeUnitypackagePath)
+        pathChange ??= InstanceRepository.RuntimeSettings.AutoChangeUnitypackagePath;
+        if (entries.Count == 1 && !pathChange.Value)
         {
             await OpenModifiedUnitypackage(entries[0].FilePath);
             return;
@@ -76,6 +79,7 @@ internal static class UnitypackageService
             {
                 importResult = await Import(
                     entries,
+                    pathChange.Value,
                     onProgress: (name, percent) =>
                     {
                         progress.Report(Localizer.Instance.Get(name, percent.ToString()), percent);

@@ -453,6 +453,8 @@
     "AdvancedSearch.IncludeHidden": "숨겨진 항목 포함",
 
     "BulkImport.Import": "일괄 가져오기",
+    "BulkImport.ImportWithPathChange": "일괄 가져오기 - 경로 변경",
+    "BulkImport.ImportWithoutPathChange": "일괄 가져오기 - 경로 변경 없음",
     "BulkImport.Save": "저장",
     "BulkImport.Reset": "초기화",
 

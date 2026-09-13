@@ -453,6 +453,8 @@
     "AdvancedSearch.IncludeHidden": "Incluir elementos ocultos",
 
     "BulkImport.Import": "Importar masivamente",
+    "BulkImport.ImportWithPathChange": "Importar masivamente - con cambio de ruta",
+    "BulkImport.ImportWithoutPathChange": "Importar masivamente - sin cambio de ruta",
     "BulkImport.Save": "Guardar",
     "BulkImport.Reset": "Reiniciar",
 

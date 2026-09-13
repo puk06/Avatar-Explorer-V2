@@ -59,7 +59,25 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
-            <Button Grid.Row="1" Classes="accentbutton" FontWeight="Bold" Content="{Binding [BulkImport.Import], Source={x:Static loc:Localizer.Instance}}" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" CornerRadius="8" Command="{Binding ImportCommand}"/>
+            <Button Grid.Row="1"
+                    Classes="accentbutton"
+                    FontWeight="Bold"
+                    Content="{Binding [BulkImport.Import], Source={x:Static loc:Localizer.Instance}}"
+                    FontSize="16"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Height="42"
+                    CornerRadius="8"
+                    Command="{Binding ImportCommand}">
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="{Binding [BulkImport.ImportWithPathChange], Source={x:Static loc:Localizer.Instance}}" Command="{Binding ImportWithPathChangeCommand}"/>
+                        <MenuItem Header="{Binding [BulkImport.ImportWithoutPathChange], Source={x:Static loc:Localizer.Instance}}" Command="{Binding ImportWithoutPathChangeCommand}"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
             <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Grid.Column="0" Classes="accentbutton" FontWeight="Bold" Content="{Binding [BulkImport.Save], Source={x:Static loc:Localizer.Instance}}" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" CornerRadius="8" Command="{Binding SaveCommand}"/>
                 <Button Grid.Column="1" Classes="button" FontWeight="Bold" Content="{Binding [BulkImport.Reset], Source={x:Static loc:Localizer.Instance}}" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" CornerRadius="8" Command="{Binding ResetCommand}"/>

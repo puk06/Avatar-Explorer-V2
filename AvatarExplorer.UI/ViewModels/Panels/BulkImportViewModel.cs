@@ -23,6 +23,8 @@ public partial class BulkImportViewModel : ViewModelBase, IInitializable
     public IReactiveCommand CopyCommand { get; }
     public IReactiveCommand RemoveCommand { get; }
     public IReactiveCommand ImportCommand { get; }
+    public IReactiveCommand ImportWithPathChangeCommand { get; }
+    public IReactiveCommand ImportWithoutPathChangeCommand { get; }
     public IReactiveCommand ResetCommand { get; }
     public IReactiveCommand SaveCommand { get; }
 
@@ -30,7 +32,9 @@ public partial class BulkImportViewModel : ViewModelBase, IInitializable
     {
         CopyCommand = ReactiveCommand.Create<BulkImportItemViewModel>(CopyItem);
         RemoveCommand = ReactiveCommand.Create<BulkImportItemViewModel>(RemoveItem);
-        ImportCommand = ReactiveCommand.CreateFromTask(Import);
+        ImportCommand = ReactiveCommand.CreateFromTask(() => Import());
+        ImportWithPathChangeCommand = ReactiveCommand.CreateFromTask(() => Import(true));
+        ImportWithoutPathChangeCommand = ReactiveCommand.CreateFromTask(() => Import(false));
         ResetCommand = ReactiveCommand.Create(Reset);
         SaveCommand = ReactiveCommand.CreateFromTask(Save);
 
@@ -50,7 +54,7 @@ public partial class BulkImportViewModel : ViewModelBase, IInitializable
     }
     private void RemoveItem(BulkImportItemViewModel item) => Items.Remove(item);
 
-    private async Task Import()
+    private async Task Import(bool? pathChange = null)
     {
         var itemPathCategoryEntries = new List<UnitypackageImportEntry>();
 
@@ -88,7 +92,7 @@ public partial class BulkImportViewModel : ViewModelBase, IInitializable
             }
         }
 
-        await UnitypackageService.ImportWithProgress(itemPathCategoryEntries, Loc.Error.BulkImportFailed);
+        await UnitypackageService.ImportWithProgress(itemPathCategoryEntries, pathChange, Loc.Error.BulkImportFailed);
     }
 
     private void Reset()
