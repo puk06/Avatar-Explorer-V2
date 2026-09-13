@@ -453,6 +453,8 @@
     "AdvancedSearch.IncludeHidden": "Inclure les éléments masqués",
 
     "BulkImport.Import": "Importation en masse",
+    "BulkImport.ImportWithPathChange": "Importation en masse - changement de chemin",
+    "BulkImport.ImportWithoutPathChange": "Importation en masse - pas de changement de chemin",
     "BulkImport.Save": "Enregistrer",
     "BulkImport.Reset": "Réinitialiser",
 

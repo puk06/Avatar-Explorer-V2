@@ -762,6 +762,8 @@ public static class Loc
     public static class BulkImport
     {
         public const string Import = "BulkImport.Import";
+        public const string ImportWithPathChange = "BulkImport.ImportWithPathChange";
+        public const string ImportWithoutPathChange = "BulkImport.ImportWithoutPathChange";
         public const string Save = "BulkImport.Save";
         public const string Reset = "BulkImport.Reset";
     }

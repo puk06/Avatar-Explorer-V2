@@ -453,6 +453,8 @@
     "AdvancedSearch.IncludeHidden": "Include Hidden Items",
 
     "BulkImport.Import": "Bulk Import",
+    "BulkImport.ImportWithPathChange": "Bulk Import - Change path to default",
+    "BulkImport.ImportWithoutPathChange": "Bulk Import - No path change",
     "BulkImport.Save": "Save",
     "BulkImport.Reset": "Reset",
 

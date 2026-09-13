@@ -453,6 +453,8 @@
     "AdvancedSearch.IncludeHidden": "非表示アイテムを含める",
 
     "BulkImport.Import": "一括インポート",
+    "BulkImport.ImportWithPathChange": "一括インポート - パス変更あり",
+    "BulkImport.ImportWithoutPathChange": "一括インポート - パス変更なし",
     "BulkImport.Save": "保存",
     "BulkImport.Reset": "リセット",
 
